@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+spec:
+  serviceName: "mysql"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      initContainers:
+        - name: init-mysql
+          image: busybox
+          command: ["sh", "-c", "mkdir -p /var/lib/mysql && chmod -R 777 /var/lib/mysql"]
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+      containers:
+        - name: mysql
+          image: mysql:latest
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "your_root_password"  # Set a secure password
+            - name: MYSQL_DATABASE
+              value: "lms"  # Set your database name
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: my-pvc  # Ensure this PVC exists
+           
